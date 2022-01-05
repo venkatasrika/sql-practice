@@ -1,0 +1,786 @@
+MariaDB [retail]> select * from salespeople;
++------+---------+-----------+------+
+| snum | sname   | city      | comm |
++------+---------+-----------+------+
+| 1001 | Peel    | London    | 0.12 |
+| 1002 | Serres  | San Jose  | 0.13 |
+| 1003 | AxelRod | New York  | 0.10 |
+| 1004 | Motika  | London    | 0.11 |
+| 1005 | Fran    | London    | 0.26 |
+| 1007 | Rifkin  | Barcelona | 0.15 |
++------+---------+-----------+------+
+6 rows in set (0.00 sec)
+2. List all customers with a rating of 100.
+ariaDB [retail]> select * from customer where rating=100;
++------+---------+--------+--------+------+
+| cnum | cname   | city   | rating | snum |
++------+---------+--------+--------+------+
+| 2001 | Hoffman | London |    100 | 1001 |
+| 2006 | praveen | London |    100 | 1001 |
+| 2007 | Satish  | Rome   |    100 | 1004 |
++------+---------+--------+--------+------+
+3 rows in set (0.00 sec)
+3. Find all records in the Customer table with NULL values in the city column.
+MariaDB [retail]> select*from customer where city is NULL;
+Empty set (0.00 sec)
+4. Find the largest order taken by each salesperson on each date.
+MariaDB [retail]> select s.snum,max(o.amt),o.odate from salespeople s join customer c join orders o on s.snum=c.snum and c.cnum=o.cnum group by c.snum order by o.odate;
++------+------------+------------+
+| snum | max(o.amt) | odate      |
++------+------------+------------+
+| 1002 |     180.69 | 1996-02-11 |
+| 1007 |     300.13 | 1996-03-10 |
+| 1001 |     900.60 | 1996-04-05 |
+| 1004 |    1800.09 | 1996-04-17 |
+| 1003 |     345.90 | 1996-06-13 |
++------+------------+------------+
+5 rows in set (0.00 sec)
+5. Arrange the Orders table by descending customer number.
+MariaDB [retail]> select * from orders group by onum order by cnum desc;
++------+---------+------------+------+
+| onum | amt     | odate      | cnum |
++------+---------+------------+------+
+| 3001 |   18.69 | 1996-03-10 | 2008 |
+| 3006 |  300.13 | 1996-05-11 | 2008 |
+| 3002 | 1800.09 | 1996-04-17 | 2007 |
+| 3008 |  190.49 | 1996-07-12 | 2006 |
+| 3011 |  234.19 | 1996-07-20 | 2006 |
+| 3010 |  180.69 | 1996-06-30 | 2004 |
+| 3005 |  156.10 | 1996-02-11 | 2003 |
+| 3009 |  345.90 | 1996-06-15 | 2002 |
+| 3007 |  111.19 | 1996-06-13 | 2002 |
+| 3003 |  900.60 | 1996-04-05 | 2001 |
++------+---------+------------+------+
+10 rows in set (0.00 sec)
+6. Find which salespeople currently have orders in the Orders table.
+MariaDB [retail]> select s.snum,c.cnum,o.cnum from salespeople s join customer c join orders o on s.snum=c.snum and c.cnum=o.cnum;     
++------+------+------+
+| snum | cnum | cnum |
++------+------+------+
+| 1001 | 2001 | 2001 |
+| 1001 | 2006 | 2006 |
+| 1001 | 2006 | 2006 |
+| 1002 | 2003 | 2003 |
+| 1002 | 2004 | 2004 |
+| 1003 | 2002 | 2002 |
+| 1003 | 2002 | 2002 |
+| 1004 | 2007 | 2007 |
+| 1007 | 2008 | 2008 |
+| 1007 | 2008 | 2008 |
++------+------+------+
+
+
+
+7. List names of all customers matched with the salespeople serving them.
+MariaDB [retail]>  select c.cname,s.sname from customer c join salespeople s on c.snum=s.snum;                                                     
++---------+---------+
+| cname   | sname   |
++---------+---------+
+| Hoffman | Peel    |
+| Ram     | AxelRod |
+| Kishen  | Serres  |
+| Sath    | Serres  |
+| praveen | Peel    |
+| Satish  | Motika  |
+| Karthik | Rifkin  |
++---------+---------+
+7 rows in set (0.00 sec)
+8. Find the names and numbers of all salespeople who had more than one customer.
+MariaDB [retail]> select s.snum,count(c.cnum) as no_of_customers from salespeople s join customer c on s.snum=c.snum group by s.snum having count(c.cnum)>1;
++------+-----------------+
+| snum | no_of_customers |
++------+-----------------+
+| 1001 |               2 |
+| 1002 |               2 |
++------+-----------------+
+9.9. Count the orders of each of the salespeople and output the results in descending order.
+MariaDB [retail]>  select s.sname,count(s.sname) from salespeople s join customer c join orders o on s.snum=c.snum and c.cnum=o.cnum group by s.snum order by count(s.snum) desc;                                                                                                                                                      
++---------+----------------+
+| sname   | count(s.sname) |
++---------+----------------+
+| Peel    |              3 |
+| Serres  |              2 |
+| AxelRod |              2 |
+| Rifkin  |              2 |
+| Motika  |              1 |
++---------+----------------+
+5 rows in set (0.00 sec)
+10. List the Customer table if and only if one or more of the customers in the Customer table are
+located in San Jose.
+MariaDB [retail]> select * from customer where city in('san Jose');
++------+---------+----------+--------+------+
+| cnum | cname   | city     | rating | snum |
++------+---------+----------+--------+------+
+| 2003 | Kishen  | San Jose |    200 | 1002 |
+| 2008 | Karthik | San Jose |    300 | 1007 |
++------+---------+----------+--------+------+
+2 rows in set (0.00 sec)
+14. List the names and commissions of all salespeople in London
+
+
+MariaDB [retail]> select sname,comm from salespeople where city in('london');                                                                                      
++--------+------+
+| sname  | comm |
++--------+------+
+| Peel   | 0.12 |
+| Motika | 0.11 |
+| Fran   | 0.26 |
+
+13. Find customers in San Jose who have a rating above 200
+
+
+MariaDB [retail]> select * from customer where rating>200 and city in ('san jose');
++------+---------+----------+--------+------+
+| cnum | cname   | city     | rating | snum |
++------+---------+----------+--------+------+
+| 2008 | Karthik | San Jose |    300 | 1007 |
++------+---------+----------+--------+------+
+1 row in set (0.00 sec)
+12. Find the largest order taken by each salesperson.
+
+
+MariaDB [retail]> select s.snum,s.sname,sum(o.amt) from salespeople s join customer c join orders o on s.snum=c.snum and c.cnum=o.cnum group by s.snum order by sum(o.amt) desc;                                                                                                                                                      
++------+---------+------------+
+| snum | sname   | sum(o.amt) |
++------+---------+------------+
+| 1004 | Motika  |    1800.09 |
+| 1001 | Peel    |    1325.28 |
+| 1003 | AxelRod |     457.09 |
+| 1002 | Serres  |     336.79 |
+| 1007 | Rifkin  |     318.82 |
+
+
+15. List all the orders of salesperson Motika from the Orders table.
+MariaDB [retail]> select s.snum,s.sname,o.onum from salespeople s join customer c join orders o on s.snum=c.snum and c.cnum=o.cnum where s.sname='Motika';                                                                                                                    
++------+--------+------+
+| snum | sname  | onum |
++------+--------+------+
+| 1004 | Motika | 3002 |
++------+--------+------+
+16. Find all customers with orders on October 3.
+MariaDB [retail]> select * from orders where odate='1996-03-10'; 
++------+-------+------------+------+
+| onum | amt   | odate      | cnum |
++------+-------+------------+------+
+| 3001 | 18.69 | 1996-03-10 | 2008 |
+
+20. Find all pairs of customers having the same rating.
+MariaDB [retail]> select * from customer order by rating;                                                                       
++------+---------+----------+--------+------+
+| cnum | cname   | city     | rating | snum |
++------+---------+----------+--------+------+
+| 2001 | Hoffman | London   |    100 | 1001 |
+| 2006 | praveen | London   |    100 | 1001 |
+| 2007 | Satish  | Rome     |    100 | 1004 |
+| 2002 | Ram     | Rome     |    200 | 1003 |
+| 2003 | Kishen  | San Jose |    200 | 1002 |
+| 2004 | Sath    | Berlin   |    300 | 1002 |
+| 2008 | Karthik | San Jose |    300 | 1007 |
++------+---------+----------+--------+------+
+
+
+21. Find all customers whose CNUM is 1000 above the SNUM of Serres.
+MariaDB [retail]> select c.cnum,c.cname from salespeople s join customer c  on s.snum=c.snum where c.cnum>2002;
++------+---------+
+| cnum | cname   |
++------+---------+
+| 2003 | Kishen  |
+| 2004 | Sath    |
+| 2006 | praveen |
+| 2007 | Satish  |
+| 2008 | Karthik |
++------+---------+
+
+22. Give the salespeople’s commissions as percentages instead of decimal numbers.
+MariaDB [retail]> select sname,comm*100 as comm from salespeople;
++---------+-------+
+| sname   | comm  |
++---------+-------+
+| Peel    | 12.00 |
+| Serres  | 13.00 |
+| AxelRod | 10.00 |
+| Motika  | 11.00 |
+| Fran    | 26.00 |
+| Rifkin  | 15.00 |
++---------+-------+
+
+23. Find the largest order taken by each salesperson on each date, eliminating those MAX orders
+which are less than $3000.00 in value.
+
+24. List the largest orders for October 3, for each salesperson.
+MariaDB [retail]> select s.snum,s.sname,o.odate,max(o.amt) as largest_order from salespeople s join customer c join orders o on s.snum=c.snum and c.cnum=o.cnum where o.odate='1996-03-10';                                                                                   
++------+--------+------------+---------------+
+| snum | sname  | odate      | largest_order |
++------+--------+------------+---------------+
+| 1007 | Rifkin | 1996-03-10 |         18.69 |
++------+--------+------------+---------------+
+
+
+25. Find all customers located in cities where Serres (SNUM 1002) has customers
+MariaDB [retail]> select s.snum,s.sname,c.cname,c.city from salespeople s join customer c on s.snum=c.snum where s.snum=1002;          
++------+--------+--------+----------+
+| snum | sname  | cname  | city     |
++------+--------+--------+----------+
+| 1002 | Serres | Kishen | San Jose |
+| 1002 | Serres | Sath   | Berlin   |
++------+--------+--------+----------+
+
+
+26. Select all customers with a rating above 200.00.
+MariaDB [retail]> select cnum,cname,rating from customer where rating>200;                                                             
++------+---------+--------+
+| cnum | cname   | rating |
++------+---------+--------+
+| 2004 | Sath    |    300 |
+| 2008 | Karthik |    300 |
++------+---------+--------+
+
+27. Count the number of salespeople currently listing orders in the Orders table.
+MariaDB [retail]> select count(s.snum)as no_of_salesmen from salespeople s join customer c join orders o on s.snum=c.snum and c.cnum=o.cnum;
++----------------+
+| no_of_salesmen |
++----------------+
+|             10 |
++----------------+
+
+
+28. Write a query that produces all customers serviced by salespeople with a commission above
+12%. Output the customer’s name and the salesperson’s rate of commission.
+MariaDB [retail]> select c.cname,s.sname,s.comm as rate_of_commision from salespeople s join customer c on s.snum=c.snum where s.comm>'0.12';                                                                                                                                 
++---------+--------+-------------------+
+| cname   | sname  | rate_of_commision |
++---------+--------+-------------------+
+| Kishen  | Serres |              0.13 |
+| Sath    | Serres |              0.13 |
+| Karthik | Rifkin |              0.15 |
++---------+--------+-------------------
+
+
+30. Find salespeople with customers located in their city.
+MariaDB [retail]> Select s.snum,s.sname from salespeople s join customer c on s.snum=c.snum where c.city=s.city;                       
++------+--------+
+| snum | sname  |
++------+--------+
+| 1001 | Peel   |
+| 1002 | Serres |
+| 1001 | Peel   |
++------+--------+
+
+
+
+============================================================================================================
+31. Find all salespeople whose name starts with ‘P’ and the fourth character is ‘l’.
+MariaDB [retail]> select * from customer where cname like 'P__l%';
+Empty set (0.00 sec)
+=======================================================================================================
+32. Write a query that uses a subquery to obtain all orders for the customer named Cisneros.
+Assume you do not know his customer number
+MariaDB [retail]> select * from orders o join customer c on o.cnum=c.cnum where c.cnum=(select c.cnum from customer where cname="Hoffma");                         
+Empty set (0.00 sec)
+============================================================================================================
+33. Find the largest orders for Serres and Rifkin
+==================================================================================================
+34. Extract the Salespeople table in the following order : SNUM, SNAME, COMMISSION, CITY.
+MariaDB [retail]> select snum as SNUM, sname as SNAME, comm as COMMISSION,city as CITY from salespeople;
++------+---------+------------+-----------+
+| SNUM | SNAME   | COMMISSION | CITY      |
++------+---------+------------+-----------+
+| 1001 | Peel    |       0.12 | London    |
+| 1002 | Serres  |       0.13 | San Jose  |
+| 1003 | AxelRod |       0.10 | New York  |
+| 1004 | Motika  |       0.11 | London    |
+| 1005 | Fran    |       0.26 | London    |
+| 1007 | Rifkin  |       0.15 | Barcelona |
++------+---------+------------+-----------+
+6 rows in set (0.00 sec)
+
+==========================================================================================================
+35. Select all customers whose names fall in between ‘A’ and ‘G’ alphabetical range.
+MariaDB [retail]> select cnum,cname from customer where cname between 'A%' and 'G%';
+Empty set (0.00 sec)
+
+MariaDB [retail]> select cnum,cname from customer where cname not between 'A%' and 'G%';                                                                           
++------+---------+
+| cnum | cname   |
++------+---------+
+| 2001 | Hoffman |
+| 2002 | Ram     |
+| 2003 | Kishen  |
+| 2004 | Sath    |
+| 2006 | praveen |
+| 2007 | Satish  |
+| 2008 | Karthik |
++------+---------+
+=========================================================================================================
+36. Select all the possible combinations of customers that you can assign.
+
+========================================================================================================
+37. Select all orders that are greater than the average for October 4.
+MariaDB [retail]> select * from orders where amt>(select avg(amt) from orders  where odate='1996-02-11');                                                          
++------+---------+------------+------+
+| onum | amt     | odate      | cnum |
++------+---------+------------+------+
+| 3002 | 1800.09 | 1996-04-17 | 2007 |
+| 3003 |  900.60 | 1996-04-05 | 2001 |
+| 3006 |  300.13 | 1996-05-11 | 2008 |
+| 3008 |  190.49 | 1996-07-12 | 2006 |
+| 3009 |  345.90 | 1996-06-15 | 2002 |
+| 3010 |  180.69 | 1996-06-30 | 2004 |
+| 3011 |  234.19 | 1996-07-20 | 2006 |
++------+---------+------------+------+
+7 rows in set (0.00 sec)
+===================================================================================================================
+38. Write a select command using a corelated subquery that selects the names and numbers of all
+customers with ratings equal to the maximum for their city
+MariaDB [retail]> select cnum,cname ,city,rating from customer where rating in (select  max(rating) from customer group by city);                                  
++------+---------+----------+--------+
+| cnum | cname   | city     | rating |
++------+---------+----------+--------+
+| 2001 | Hoffman | London   |    100 |
+| 2002 | Ram     | Rome     |    200 |
+| 2003 | Kishen  | San Jose |    200 |
+| 2004 | Sath    | Berlin   |    300 |
+| 2006 | praveen | London   |    100 |
+| 2007 | Satish  | Rome     |    100 |
+| 2008 | Karthik | San Jose |    300 |
++------+---------+----------+--------+
+===========================================================================================================
+39. Write a query that totals the orders for each day and places the results in descending order.
+MariaDB [retail]> select onum,sum(amt) from orders group by odate order by sum(amt) desc;                                                                          
++------+----------+
+| onum | sum(amt) |
++------+----------+
+| 3002 |  1800.09 |
+| 3003 |   900.60 |
+| 3009 |   345.90 |
+| 3006 |   300.13 |
+| 3011 |   234.19 |
+| 3008 |   190.49 |
+| 3010 |   180.69 |
+| 3005 |   156.10 |
+| 3007 |   111.19 |
+| 3001 |    18.69 |
++------+----------+
+10 rows in set (0.00 sec)
+====================================================================================================
+40. Write a select command that produces the rating followed by the name of each customer in
+San Jose.
+MariaDB [retail]> select cnum,cname,rating from customer where city='San Jose';
++------+---------+--------+
+| cnum | cname   | rating |
++------+---------+--------+
+| 2003 | Kishen  |    200 |
+| 2008 | Karthik |    300 |
++------+---------+--------+
+==========================================================================================================
+41. Find all orders with amounts smaller than any amount for a customer in San Jose.
+MariaDB [retail]> select * from orders o join customer c on o.cnum=c.cnum where o.amt <  in (select min(o.amt) from orders where c.city='San Jose');               
+===================================================================================================================
+42. Find all orders with above average amounts for their customers
+
+MariaDB [retail]> select * from orders where amt>(select avg(amt) from orders);
++------+---------+------------+------+
+| onum | amt     | odate      | cnum |
++------+---------+------------+------+
+| 3002 | 1800.09 | 1996-04-17 | 2007 |
+| 3003 |  900.60 | 1996-04-05 | 2001 |
++------+---------+------------+------+
+2 rows in set (0.00 sec)
+==========================================================================================================
+43. Write a query that selects the highest rating in each city.
+MariaDB [retail]> select * from orders o join customer c on o.cnum=c.cnum where rating  = (select max(rating) from orders group by city order by rating);
++------+---------+------------+------+------+---------+----------+--------+------+
+| onum | amt     | odate      | cnum | cnum | cname   | city     | rating | snum |
++------+---------+------------+------+------+---------+----------+--------+------+
+| 3001 |   18.69 | 1996-03-10 | 2008 | 2008 | Karthik | San Jose |    300 | 1007 |
+| 3002 | 1800.09 | 1996-04-17 | 2007 | 2007 | Satish  | Rome     |    100 | 1004 |
+| 3003 |  900.60 | 1996-04-05 | 2001 | 2001 | Hoffman | London   |    100 | 1001 |
+| 3005 |  156.10 | 1996-02-11 | 2003 | 2003 | Kishen  | San Jose |    200 | 1002 |
+| 3006 |  300.13 | 1996-05-11 | 2008 | 2008 | Karthik | San Jose |    300 | 1007 |
+| 3007 |  111.19 | 1996-06-13 | 2002 | 2002 | Ram     | Rome     |    200 | 1003 |
+| 3008 |  190.49 | 1996-07-12 | 2006 | 2006 | praveen | London   |    100 | 1001 |
+| 3009 |  345.90 | 1996-06-15 | 2002 | 2002 | Ram     | Rome     |    200 | 1003 |
+| 3010 |  180.69 | 1996-06-30 | 2004 | 2004 | Sath    | Berlin   |    300 | 1002 |
+| 3011 |  234.19 | 1996-07-20 | 2006 | 2006 | praveen | London   |    100 | 1001 |
++------+---------+------------+------+------+---------+----------+--------+------+
+
+10 rows in set (0.00 sec)+------+-------+------------+------+
+44. Write a query that calculates the amount of the salesperson’s commission on each order by a
+customer with a rating above 100.00.
+MariaDB [retail]> select s.snum,s.comm from salespeople s join customer c join orders o on s.snum=c.cnum and c.cnum=o.cnum where s.comm in( select sum(s.comm) from orders where c.rating >= ( select c.rating from customer where c.rating >=100));                                                                                  
+Empty set (0.01 sec)
+
+=========================================================================================================
+45. Count the customers with ratings above San Jose’s average.
+ariaDB [retail]> select count(cnum) from customer where rating>(select avg(rating) from customer where city='San Jose');              
++-------------+
+| count(cnum) |
++-------------+
+|           2 |
++-------------+
+
+=========================================================================================================
+
+46. Write a query that produces all pairs of salespeople with themselves as well as duplicate rows
+with the order reversed.
+=======================================================================================================
+
+47. Find all salespeople that are located in either Barcelona or London.
+MariaDB [retail]> select * from salespeople where city='barcelona' or 'london';
++------+--------+-----------+------+
+| snum | sname  | city      | comm |
++------+--------+-----------+------+
+| 1007 | Rifkin | Barcelona | 0.15 |
++------+--------+-----------+------+
+
+============================================================================================================
+
+48. Find all salespeople with only one customer.
+=========================================================================================================
+
+49. Write a query that joins the Customer table to itself to find all pairs of customers served by a
+single salesperson.
+========================================================================================================
+
+50.Write a query that will give you all orders for more than $1000.00
+MariaDB [retail]> select * from orders where amt>1000;
++------+---------+------------+------+
+| onum | amt     | odate      | cnum |
++------+---------+------------+------+
+| 3002 | 1800.09 | 1996-04-17 | 2007 |
++------+---------+------------+------+
+
+=========================================================================================================
+
+51. Write a query that lists each order number followed by the name of the customer who made
+that order.
+MariaDB [retail]>  select o.onum,c.cname from customer c join orders o on c.cnum=o.cnum;                                               
++------+---------+
+| onum | cname   |
++------+---------+
+| 3003 | Hoffman |
+| 3007 | Ram     |
+| 3009 | Ram     |
+| 3005 | Kishen  |
+| 3010 | Sath    |
+| 3008 | praveen |
+| 3011 | praveen |
+| 3002 | Satish  |
+| 3001 | Karthik |
+| 3006 | Karthik |
++------+---------+
+
+==========================================================================================================
+
+52. Write 2 queries that select all salespeople (by name and number) who have customers in their
+cities who they do not service, one using a join and one a corelated subquery. Which solution
+is more elegant?
+
+==========================================================================================================
+
+53. Write a query that selects all customers whose ratings are equal to or greater than ANY (in the
+SQL sense) of Serres’?
+MariaDB [retail]> select * from customer where rating>=(select rating from customer where rating=200);                                  
+ERROR 1242 (21000): Subquery returns more than 1 row
+
+==========================================================================================================
+
+54. Write 2 queries that will produce all orders taken on October 3 or October 4.
+MariaDB [retail]> select * from orders where odate='1996-03-10' or odate='1996-04-10';
++------+-------+------------+------+
+| onum | amt   | odate      | cnum |
++------+-------+------------+------+
+| 3001 | 18.69 | 1996-03-10 | 2008 |
++------+-------+------------+------+
+                or
+select * from orders from odate='1996-03-10'; 
+select * from orders where odate='1996-04-10';
+
+=========================================================================================================
+
+55. Write a query that produces all pairs of orders by a given customer. Name that customer and
+eliminate duplicates.
+MariaDB [retail]> select c.cname,o.onum from customer c join orders o on c.cnum=o.cnum;                                                 
++---------+------+
+| cname   | onum |
++---------+------+
+| Hoffman | 3003 |
+| Ram     | 3007 |
+| Ram     | 3009 |
+| Kishen  | 3005 |
+| Sath    | 3010 |
+| praveen | 3008 |
+| praveen | 3011 |
+| Satish  | 3002 |
+| Karthik | 3001 |
+| Karthik | 3006 |
++---------+------+
+
+===========================================================================================================
+56. Find only those customers whose ratings are higher than every customer in Rome.
+MariaDB [retail]> select * from customer where rating>(select max(rating) from customer where city='Rome');                             
++------+---------+----------+--------+------+
+| cnum | cname   | city     | rating | snum |
++------+---------+----------+--------+------+
+| 2004 | Sath    | Berlin   |    300 | 1002 |
+| 2008 | Karthik | San Jose |    300 | 1007 |
++------+---------+----------+--------+------+
+
+==========================================================================================================
+
+57. Write a query on the Customers table whose output will exclude all customers with a rating <=
+100.00, unless they are located in Rome.
+
+=========================================================================================================
+58. Find all rows from the Customers table for which the salesperson number is 1001.
+MariaDB [retail]> select * from customer where snum=1001;
++------+---------+--------+--------+------+
+| cnum | cname   | city   | rating | snum |
++------+---------+--------+--------+------+
+| 2001 | Hoffman | London |    100 | 1001 |
+| 2006 | praveen | London |    100 | 1001 |
++------+---------+--------+--------+------+
+
+=========================================================================================================
+59. Find the total amount in Orders for each salesperson for whom this total is greater than the
+amount of the largest order in the table.
+
+=====================================================================================================
+
+60. Write a query that selects all orders save those with zeroes or NULLs in the amount field.
+MariaDB [retail]> select * from orders where amt is null or amt=0;
+Empty set (0.00 sec)
+
+===================================================================================================
+
+61. Produce all combinations of salespeople and customer names such that the former precedes
+the latter alphabetically, and the latter has a rating of less than 200.
+
+====================================================================================================
+
+62. List all Salespeople’s names and the Commission they have earned.
+MariaDB [retail]> select sname,comm from salespeople;
++---------+------+
+| sname   | comm |
++---------+------+
+| Peel    | 0.12 |
+| Serres  | 0.13 |
+| AxelRod | 0.10 |
+| Motika  | 0.11 |
+| Fran    | 0.26 |
+| Rifkin  | 0.15 |
++---------+------+
+
+=========================================================================================================
+
+63. Write a query that produces the names and cities of all customers with the same rating as
+Hoffman. Write the query using Hoffman’s CNUM rather than his rating, so that it would still be
+usable if his rating changed.
+
+MariaDB [retail]> select cname,cnum,city,rating from customer where rating in(select rating from customer where cnum=2001);             
++---------+------+--------+--------+
+| cname   | cnum | city   | rating |
++---------+------+--------+--------+
+| Hoffman | 2001 | London |    100 |
+| praveen | 2006 | London |    100 |
+| Satish  | 2007 | Rome   |    100 |
++---------+------+--------+--------+
+
+=============================================================================================================
+
+64. Find all salespeople for whom there are customers that follow them in alphabetical order.
+
+=======================================================================================================
+
+65. Write a query that produces the names and ratings of all customers of all who have above
+average orders.
+MariaDB [retail]>  select c.cname,c.rating,o.amt from customer c join orders o on c.cnum=o.cnum where amt>(select avg(amt) as avg_amt from orders)group by c.cname;                                                                                                             
++---------+--------+---------+
+| cname   | rating | amt     |
++---------+--------+---------+
+| Hoffman |    100 |  900.60 |
+| Satish  |    100 | 1800.09 |
++---------+--------+---------+
+
+=======================================================================================================
+
+66. Find the SUM of all purchases from the Orders table.
+MariaDB [retail]> select sum(amt) as Total_amt from orders;                                                                             
++-----------+
+| Total_amt |
++-----------+
+|   4238.07 |
++-----------+
+
+=======================================================================================================
+
+67. Write a SELECT command that produces the order number, amount and date for all rows in
+the order table.
+MariaDB [retail]> select onum,odate from orders;
++------+------------+
+| onum | odate      |
++------+------------+
+| 3001 | 1996-03-10 |
+| 3002 | 1996-04-17 |
+| 3003 | 1996-04-05 |
+| 3005 | 1996-02-11 |
+| 3006 | 1996-05-11 |
+| 3007 | 1996-06-13 |
+| 3008 | 1996-07-12 |
+| 3009 | 1996-06-15 |
+| 3010 | 1996-06-30 |
+| 3011 | 1996-07-20 |
++------+------------+
+
+======================================================================================================
+
+68. Count the number of nonNULL rating fields in the Customers table (including repeats).
+MariaDB [retail]>  select count(rating) as count_of_nonNULL_rating from customer;                                                       
++-------------------------+
+| count_of_nonNULL_rating |
++-------------------------+
+|                       7 |
++-------------------------+
+1 row in set (0.00 sec)
+
+=========================================================================================================
+
+69. Write a query that gives the names of both the salesperson and the customer for each order
+after the order number.
+MariaDB [retail]> select s.sname,c.cname,o.onum from customer c join salespeople s join orders o on s.snum=c.snum and c.cnum=o.cnum;    +---------+---------+------+
+| sname   | cname   | onum |
++---------+---------+------+
+| Peel    | Hoffman | 3003 |
+| AxelRod | Ram     | 3007 |
+| AxelRod | Ram     | 3009 |
+| Serres  | Kishen  | 3005 |
+| Serres  | Sath    | 3010 |
+| Peel    | praveen | 3008 |
+| Peel    | praveen | 3011 |
+| Motika  | Satish  | 3002 |
+| Rifkin  | Karthik | 3001 |
+| Rifkin  | Karthik | 3006 |
++---------+---------+------+
+10 rows in set (0.01 sec)
+
+=========================================================================================================
+70. List the commissions of all salespeople servicing customers in London.
+MariaDB [retail]> select s.sname,s.comm,c.city,c.cname from salespeople s join customer c on s.snum=c.snum where c.city='London';       
++-------+------+--------+---------+
+| sname | comm | city   | cname   |
++-------+------+--------+---------+
+| Peel  | 0.12 | London | Hoffman |
+| Peel  | 0.12 | London | praveen |
++-------+------+--------+---------+
+2 rows in set (0.00 sec)
+
+=========================================================================================================
+
+71. Write a query using ANY or ALL that will find all salespeople who have no customers located in
+their city.
+========================================================================================================
+
+72. Write a query using the EXISTS operator that selects all salespeople with customers located in
+their cities who are not assigned to them.
+MariaDB [retail]>  select s.sname,s.city,c.cname,c.city as customer_city from salespeople s join customer c on s.snum=c.snum where s.city!=c.city;                                                                                                                              
++---------+-----------+---------+---------------+
+| sname   | city      | cname   | customer_city |
++---------+-----------+---------+---------------+
+| AxelRod | New York  | Ram     | Rome          |
+| Serres  | San Jose  | Sath    | Berlin        |
+| Motika  | London    | Satish  | Rome          |
+| Rifkin  | Barcelona | Karthik | San Jose      |
++---------+-----------+---------+---------------+
+
+==========================================================================================================
+
+73. Write a query that selects all customers serviced by Peel or Motika. (Hint : The SNUM field
+relates the two tables to one another.)
+MariaDB [retail]> select s.snum,s.sname,c.cnum,c.cname from salespeople s join customer c on s.snum=c.snum where s.sname='Peel' or s.sname='Motika';
++------+--------+------+---------+
+| snum | sname  | cnum | cname   |
++------+--------+------+---------+
+| 1001 | Peel   | 2001 | Hoffman |
+| 1001 | Peel   | 2006 | praveen |
+| 1004 | Motika | 2007 | Satish  |
++------+--------+------+---------+
+3 rows in set (0.00 sec)
+
+==========================================================================================================
+
+
+74. Count the number of salespeople registering orders for each day. (If a salesperson has more
+than one order on a given day, he or she should be counted only once.)
+MariaDB [retail]>  select o.odate,count(c.snum) as salespeople_registered_perday from customer c join orders o on c.cnum=o.cnum group by o.odate;                                                                                                                               
++------------+-------------------------------+
+| odate      | salespeople_registered_perday |
++------------+-------------------------------+
+| 1996-02-11 |                             1 |
+| 1996-03-10 |                             1 |
+| 1996-04-05 |                             1 |
+| 1996-04-17 |                             1 |
+| 1996-05-11 |                             1 |
+| 1996-06-13 |                             1 |
+| 1996-06-15 |                             1 |
+| 1996-06-30 |                             1 |
+| 1996-07-12 |                             1 |
+| 1996-07-20 |                             1 |
++------------+-------------------------------+
+10 rows in set (0.00 sec)
+
+============================================================================================================
+
+75. Find all orders attributed to salespeople in London.
+MariaDB [retail]>  select s.sname,c.city,o.onum from salespeople s join customer c join orders o on s.snum=c.snum and c.cnum=o.cnum where c.city='London';                                                                                                                      
++-------+--------+------+
+| sname | city   | onum |
++-------+--------+------+
+| Peel  | London | 3003 |
+| Peel  | London | 3008 |
+| Peel  | London | 3011 |
++-------+--------+------+
+
+===========================================================================================================
+
+77. Find all salespeople who have customers with more than one current order.
+MariaDB [retail]> select s.snum,c.cnum,o.onum from salespeople s join customer c join orders o on s.snum=c.snum and c.cnum=o.cnum where count(o.onum)>1 group by s.snum;
+ERROR 1111 (HY000): Invalid use of group function
+
+==========================================================================================================
+
+78. Write a query that extracts from the Customers table every customer assigned to a
+salesperson who currently has at least one other customer (besides the customer being
+selected) with orders in the Orders table.
+MariaDB [retail]> select c.snum,c.cnum,o.onum from customer c join orders o on c.cnum=o.cnum;                                           
++------+------+------+
+| snum | cnum | onum |
++------+------+------+
+| 1001 | 2001 | 3003 |
+| 1001 | 2006 | 3008 |
+| 1001 | 2006 | 3011 |
+| 1002 | 2003 | 3005 |
+| 1002 | 2004 | 3010 |
+| 1003 | 2002 | 3007 |
+| 1003 | 2002 | 3009 |
+| 1004 | 2007 | 3002 |
+| 1007 | 2008 | 3001 |
+| 1007 | 2008 | 3006 |
++------+------+------+
+10 rows in set (0.00 sec)
+
+=====================================================================================================
+79. Write a query that selects all customers whose names begin with ‘C’.
+MariaDB [retail]> select * from customer where cname like 'c%';
+Empty set (0.04 sec)
+========================================================================================================
+80. Write a query on the Customers table that will find the highest rating in each city. Put the output
+in this form : for the city (city) the highest rating is : (rating).
+MariaDB [retail]> select city, max(rating) as rating from customer group by city;
++----------+--------+
+| city     | rating |
++----------+--------+
+| Berlin   |    300 |
+| London   |    100 |
+| Rome     |    200 |
+| San Jose |    300 |
++----------+--------+
